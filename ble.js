@@ -1,3 +1,4 @@
+const serial_cmd_report_gamepad_header = new Uint8Array([0x31]);
 const serial_cmd_get_amiibo_info = new Uint8Array([0x40]);
 const serial_cmd_ctrl_amiibo_clean = new Uint8Array([0x41, 0x01]);
 const serial_cmd_ctrl_amiibo_update_header = new Uint8Array([0x41, 0x02]);
@@ -251,9 +252,21 @@ async function test_amiibo(amiibo_data) {
   await serial_tx(serial_cmd_ctrl_amiibo_apply, false);
 }
 
-async function test_gamepad() {
-  logout("test_gamepad: Not Support");
+async function report_gamepad(min_interval, diff_max_interval) {
+  var pkt = new Uint8Array(5);
+  pkt.set(serial_cmd_report_gamepad_header);
+  pkt.set(new Uint8Array([min_interval & 0xff, min_interval >> 8, diff_max_interval & 0xff, diff_max_interval >> 8]), serial_cmd_report_gamepad_header.length);
+  await serial_tx(pkt, false);
 }
+
+async function test_gamepad_on() {
+  report_gamepad(16, 256);
+}
+
+async function test_gamepad_off() {
+  report_gamepad(0, 0);
+}
+
 
 async function test_Guardian() {
   await test_amiibo(amiibo_data[0]);
